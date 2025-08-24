@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+<title>Phonebook (Mobile)</title>
+<style>
+  :root{
+    --accent:#4456F0;
+    --accent-dark:#2f3dcf;
+    --bg:#ffffff;
+    --muted:#666;
+    --radius:10px;
+    --gap:10px;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial;}
+  body{background:var(--bg);display:flex;flex-direction:column;gap:0;min-height:100vh;}
+  header{background:linear-gradient(90deg,var(--accent),var(--accent-dark));color:#fff;padding:14px 16px;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:space-between;}
+  header .title{display:flex;flex-direction:column;}
+  header .subtitle{font-size:12px;opacity:0.9}
+  .container{padding:12px;flex:1;display:flex;flex-direction:column;gap:10px;}
+  .row{display:flex;gap:8px;align-items:center;}
+  input[type="text"], input[type="tel"]{
+    padding:12px;border-radius:8px;border:1px solid #ddd;flex:1;font-size:15px;
+  }
+  .btn{
+    background:var(--accent);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-weight:700;
+    min-width:64px;text-align:center;
+  }
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);font-weight:600;}
+  .btn.small{padding:8px 10px;min-width:48px;font-size:14px;}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;}
+  .list{background:#fff;border-radius:12px;padding:6px;border:1px solid #eee;flex:1;overflow:auto;max-height:50vh;}
+  .item{display:flex;flex-direction:column;padding:10px;border-radius:10px;margin:6px 4px;cursor:pointer;border:1px solid transparent;}
+  .item:hover{background:#f7f8ff}
+  .item.selected{border-color:rgba(68,86,240,0.18);box-shadow:0 2px 6px rgba(68,86,240,0.06);background:linear-gradient(180deg,#fbfbff,#f7f8ff)}
+  .item .name{font-weight:700}
+  .item .tel{font-size:13px;color:var(--muted)}
+  .item .tel a{color:inherit;text-decoration:none;}
+  .item .tel a:hover{text-decoration:underline;}
+  .empty{padding:18px;text-align:center;color:var(--muted)}
+  footer{padding:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.02),transparent);}
+  .topbar{display:flex;gap:8px;align-items:center;width:100%;}
+  .searchBox{display:flex;gap:8px;flex:1;}
+  label.small{font-size:12px;color:var(--muted)}
+  @media(min-width:700px){
+    .container{max-width:720px;margin:0 auto;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <div>Phonebook</div>
+    <div class="subtitle">Local-only · 안전한 휴대폰용 주소록</div>
+  </div>
+  <div style="font-size:13px;opacity:0.9">오프라인 사용 가능</div>
+</header>
+
+<div class="container">
+
+  <div class="topbar">
+    <div class="searchBox">
+      <input id="search" type="text" placeholder="이름으로 검색" oninput="searchData()" />
+      <button class="btn small ghost" onclick="resetTable()">모두보기</button>
+    </div>
+    <button class="btn small" onclick="promptPasswordThenExportVCF()">VCF</button>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;gap:8px;">
+      <input id="name" type="text" placeholder="이름" />
+      <input id="telephone" type="tel" placeholder="전화번호" />
+    </div>
+
+    <div class="controls">
+      <button class="btn" onclick="addData()">추가</button>
+      <button class="btn ghost" onclick="updateData()">수정</button>
+      <button class="btn ghost" onclick="deleteData()" style="color:#c44;border-color:#f3dede">삭제</button>
+      <button class="btn ghost" onclick="document.getElementById('fileInput').click()">CSV 가져오기</button>
+      <button class="btn" onclick="exportCSV()">CSV 내보내기</button>
+      <button class="btn ghost" onclick="exportVCF()">VCF 내보내기(다운)</button>
+    </div>
+  </div>
+
+  <div class="list" id="phonebookList" aria-live="polite">
+    <!-- 동적으로 채워짐 -->
+  </div>
+
+  <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none;" />
+
+</div>
+
+<footer>
+  <div style="font-size:13px;color:var(--muted)">암호 보호(간단) : 변경/추가/삭제 시 암호 필요</div>
+  <div style="width:100%;text-align:center;font-size:12px;color:var(--muted)">파일로 내보내기 → '연락처 가져오기' 로 휴대폰 기본 연락처에 추가하세요.</div>
+</footer>
+
+<script>
+const STORAGE_KEY = "phonebook_v1";
+const PASSWORD = "1397"; // 필요 시 변경
+let phonebook = [];
+let selectedIndex = null;
+
+// DOM
+const listEl = document.getElementById("phonebookList");
+const nameInput = document.getElementById("name");
+const telInput = document.getElementById("telephone");
+const searchInput = document.getElementById("search");
+const fileInput = document.getElementById("fileInput");
+
+// 초기 로드
+loadFromLocalStorage();
+renderList();
+
+function saveToLocalStorage(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(phonebook));
+  }catch(e){
+    alert("저장 실패: 저장 공간이 부족하거나 브라우저 보안 설정이 제한됨");
+    console.error(e);
+  }
+}
+function loadFromLocalStorage(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{ phonebook = JSON.parse(raw); }catch(e){ phonebook = []; }
+  } else { phonebook = []; }
+}
+
+function renderList(filter = null){
+  listEl.innerHTML = "";
+  const data = filter || phonebook;
+  if(!data.length){
+    listEl.innerHTML = '<div class="empty">저장된 연락처가 없습니다.</div>';
+    return;
+  }
+  data.forEach((item, idx) => {
+    const row = document.createElement("div");
+    row.className = "item";
+    const realIndex = phonebook.indexOf(item);
+    if(realIndex === selectedIndex) row.classList.add("selected");
+    row.onclick = () => selectRow(realIndex);
+    row.innerHTML = `
+      <div class="name">${escapeHtml(item.name)}</div>
+      <div class="tel"><a href="tel:${item.telephone}" onclick="event.stopPropagation()">${escapeHtml(item.telephone)}</a></div>
+    `;
+    listEl.appendChild(row);
+  });
+}
+
+function selectRow(index){
+  selectedIndex = index;
+  const item = phonebook[index];
+  if(!item) return;
+  nameInput.value = item.name;
+  telInput.value = item.telephone;
+  renderList();
+  setTimeout(()=> {
+    const els = document.querySelectorAll(".item");
+    if(els[index]) els[index].scrollIntoView({behavior:"smooth",block:"center"});
+  },100);
+}
+
+function checkPassword(){
+  const input = prompt("작업을 수행하려면 암호를 입력하세요:");
+  if(input === null) return false;
+  return input === PASSWORD;
+}
+
+function addData(){
+  if(!checkPassword()) { alert("암호 불일치 또는 취소됨"); return; }
+  const name = nameInput.value.trim();
+  const telephone = telInput.value.trim();
+  if(!name || !telephone){ alert("이름과 전화번호를 입력하세요."); return; }
+  const exists = phonebook.some(p => p.name === name && p.telephone === telephone);
+  if(exists && !confirm("같은 연락처가 이미 존재합니다. 그래도 추가하시겠습니까?")) return;
+  phonebook.push({name, telephone});
+  saveToLocalStorage();
+  clearInputs();
+  renderList();
+  alert("추가되었습니다.");
+}
+
+function updateData(){
+  if(!checkPassword()) { alert("암호 불일치 또는 취소됨"); return; }
+  if(selectedIndex === null){ alert("수정할 항목을 선택하세요."); return; }
+  const name = nameInput.value.trim();
+  const telephone = telInput.value.trim();
+  if(!name || !telephone){ alert("이름과 전화번호를 입력하세요."); return; }
+  phonebook[selectedIndex] = {name, telephone};
+  saveToLocalStorage();
+  clearInputs();
+  selectedIndex = null;
+  renderList();
+  alert("수정되었습니다.");
+}
+
+function deleteData(){
+  if(!checkPassword()) { alert("암호 불일치 또는 취소됨"); return; }
+  if(selectedIndex === null){ alert("삭제할 항목을 선택하세요."); return; }
+  if(!confirm(`"${phonebook[selectedIndex].name}" 을(를) 삭제할까요?`)) return;
+  phonebook.splice(selectedIndex,1);
+  saveToLocalStorage();
+  clearInputs();
+  selectedIndex = null;
+  renderList();
+  alert("삭제되었습니다.");
+}
+
+function searchData(){
+  const kw = searchInput.value.trim().toLowerCase();
+  if(!kw){ renderList(); return; }
+  const results = phonebook.filter(item => item.name.toLowerCase().includes(kw) || item.telephone.includes(kw));
+  renderList(results);
+}
+
+function resetTable(){
+  searchInput.value = "";
+  renderList();
+}
+
+function clearInputs(){
+  nameInput.value = "";
+  telInput.value = "";
+}
+
+function exportCSV(){
+  if(!phonebook.length){ alert("내보낼 연락처가 없습니다."); return; }
+  let csv = "Name,Telephone\n";
+  phonebook.forEach(p => {
+    const n = csvSafe(p.name);
+    const t = csvSafe(p.telephone);
+    csv += `${n},${t}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'phonebook.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+fileInput.addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    const text = evt.target.result;
+    importCSVText(text);
+    fileInput.value = "";
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+function importCSVText(text){
+  const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim()!=='');
+  if(!lines.length) { alert("파일이 비어있습니다."); return; }
+  let start = 0;
+  if(lines[0].toLowerCase().includes('name') && lines[0].toLowerCase().includes('telephone')) start = 1;
+  let added = 0;
+  for(let i=start;i<lines.length;i++){
+    const line = lines[i];
+    const parsed = parseCSVLine(line);
+    if(!parsed) continue;
+    const name = parsed[0] ? parsed[0].trim() : '';
+    const tel = parsed[1] ? parsed[1].trim() : '';
+    if(name && tel){
+      phonebook.push({name, telephone: tel});
+      added++;
+    }
+  }
+  saveToLocalStorage();
+  renderList();
+  alert(`${added}개의 연락처를 가져왔습니다.`);
+}
+
+function exportVCF(){
+  if(!phonebook.length){ alert("내보낼 연락처가 없습니다."); return; }
+  let vcf = "";
+  phonebook.forEach(p => {
+    const fn = sanitizeVCard(p.name);
+    const tel = sanitizeVCard(p.telephone);
+    vcf += `BEGIN:VCARD\r\nVERSION:3.0\r\nFN:${fn}\r\nTEL;TYPE=CELL:${tel}\r\nEND:VCARD\r\n`;
+  });
+  const blob = new Blob([vcf], {type:'text/vcard;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'phonebook.vcf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function promptPasswordThenExportVCF(){
+  if(!checkPassword()) { alert("암호 불일치 또는 취소됨"); return; }
+  exportVCF();
+}
+
+function csvSafe(text){
+  if(text == null) return '';
+  const s = String(text);
+  if(s.includes(',') || s.includes('"') || s.includes('\n')){
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+function parseCSVLine(line){
+  const res = [];
+  let cur = '';
+  let inQuotes = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(ch === '"' ){
+      if(inQuotes && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQuotes = !inQuotes;
+      continue;
+    }
+    if(ch === ',' && !inQuotes){
+      res.push(cur);
+      cur = '';
+      continue;
+    }
+    cur += ch;
+  }
+  res.push(cur);
+  return res;
+}
+function sanitizeVCard(s){
+  if(!s) return '';
+  return String(s).replace(/\r\n/g,' ').replace(/\n/g,' ').replace(/,/g,'\\,');
+}
+function escapeHtml(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+window.addEventListener('beforeunload', saveToLocalStorage);
+renderList();
+</script>
+
+</body>
+</html>
