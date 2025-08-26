@@ -230,19 +230,25 @@ async function readFileWithAutoEncoding(file){
   return t;
 }
 function importCSVText(text){
-  const lines=text.replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(l!=='' );
+  const lines = text.replace(/\r/g,'').split('\n').map(l => l.trim()).filter(l => l !== '');
   if(!lines.length){ alert('빈 파일입니다.'); return; }
-  let start=0; if(lines[0].toLowerCase().includes('name')&&lines[0].toLowerCase().includes('telephone')) start=1;
+
+  let start=0;
+  // 한글 헤더를 건너뛰고 싶으면 아래처럼 처리
+  if(lines[0].includes('이름') && lines[0].includes('전화번호')) start=1;
+
   let added=0;
   for(let i=start;i<lines.length;i++){
     const parsed=parseCSVLine(lines[i]);
-    if(!parsed||parsed.length<2) continue;
-    const name=parsed[0].trim(), phone=parsed[1].trim();
-    if(!name||!phone) continue;
-    const exists=phonebook.some(p=>p.name===name&&p.phone===phone);
-    if(!exists){ phonebook.push({name,phone}); added++; }
+    if(!parsed || parsed.length < 2) continue;
+    const name = parsed[0].trim();
+    const phone = parsed[1].trim();
+    if(!name || !phone) continue;
+    const exists = phonebook.some(p=>p.name===name && p.phone===phone);
+    if(!exists){ phonebook.push({name, phone}); added++; }
   }
-  save(); render(); if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
+  save(); render();
+  if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
 }
 function parseCSVLine(line){
   const res=[]; let cur=''; let inQ=false;
