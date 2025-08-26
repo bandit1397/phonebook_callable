@@ -5,14 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 <title>연락처 관리 (모바일)</title>
 <style>
-/* --- 스타일 그대로 유지 --- */
-:root{
-  --accent:#4456F0;
-  --accent-2:#2f3dcf;
-  --bg:#f4f6f9;
-  --card:#ffffff;
-  --muted:#666;
-}
+/* 기존 CSS 동일 */
+:root{--accent:#4456F0;--accent-2:#2f3dcf;--bg:#f4f6f9;--card:#ffffff;--muted:#666;}
 html,body{height:100%;margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial;}
 body{background:var(--bg);display:flex;flex-direction:column;min-height:100vh;}
 header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:14px 16px;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:space-between}
@@ -39,33 +33,11 @@ header .subtitle{font-size:12px;opacity:0.95}
 .muted{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
 .row-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
 .row-group .btn,
-.row-group label {
-  flex:1;
-  min-width:120px;
-  height:40px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-sizing:border-box;
-  border-radius:8px;
-  font-weight:700;
-  cursor:pointer;
-  text-align:center;
-}
-.row-group label {
-  background: transparent;
-  color: var(--accent);
-  border:1px solid var(--accent);
-}
+.row-group label {flex:1;min-width:120px;height:40px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:8px;font-weight:700;cursor:pointer;text-align:center;}
+.row-group label {background: transparent;color: var(--accent);border:1px solid var(--accent);}
 .row-group label input[type=file]{display:none;}
 .row-group .small{flex:0 0 auto;}
-@media(max-width:600px){
-  .form{flex-direction:column}
-  .searchRow{flex-direction:column}
-  .row-group{flex-direction:column}
-  .card{flex-direction:column;align-items:flex-start}
-  .card .actions{width:100%;justify-content:flex-end}
-}
+@media(max-width:600px){.form{flex-direction:column}.searchRow{flex-direction:column}.row-group{flex-direction:column}.card{flex-direction:column;align-items:flex-start}.card .actions{width:100%;justify-content:flex-end}}
 </style>
 </head>
 <body>
@@ -207,7 +179,7 @@ async function onDelete(index){
 
 function clearForm(){ nameInput.value=''; phoneInput.value=''; }
 
-// === 검색 기능 ===
+// === 검색 ===
 searchInput.addEventListener('input', function () {
   const raw = (this.value || '').trim();
   if (raw.length < 1) {
@@ -244,7 +216,7 @@ searchInput.addEventListener('input', function () {
 
 btnReset.addEventListener('click',()=>{ searchInput.value=''; render(); });
 
-// --- CSV 업로드 & 다운로드 ---
+// === CSV 기능 ===
 fileInput.addEventListener('change',async(ev)=>{
   const file=ev.target.files[0]; if(!file)return;
   try{ const text=await readFileWithAutoEncoding(file); importCSVText(text); }
@@ -258,7 +230,7 @@ async function readFileWithAutoEncoding(file){
   return t;
 }
 function importCSVText(text){
-  const lines=text.replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(l!=='');
+  const lines=text.replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(l!=='' );
   if(!lines.length){ alert('빈 파일입니다.'); return; }
   let start=0; if(lines[0].toLowerCase().includes('name')&&lines[0].toLowerCase().includes('telephone')) start=1;
   let added=0;
@@ -308,17 +280,20 @@ btnResetPw.addEventListener('click',()=>{
 
 function csvSafe(s){ if(s==null) return ''; const str=String(s); if(str.includes(',')||str.includes('"')||str.includes('\n')) return '"'+str.replace(/"/g,'""')+'"'; return str; }
 
-// --- GitHub Pages용: data.csv 자동 로드 ---
+// === data.csv 자동 불러오기 (배포용) ===
 async function loadDefaultCSV(){
   try{
-    const res=await fetch('data.csv');
-    if(!res.ok) return; // 없으면 패스
-    const text=await res.text();
+    const res = await fetch('data.csv');
+    if(!res.ok) return; 
+    const text = await res.text();
     importCSVText(text);
-  }catch(e){ console.warn('기본 CSV 로드 실패:', e); }
+  }catch(e){
+    console.warn('data.csv 불러오기 실패', e);
+  }
 }
 
 load(); render(); loadDefaultCSV();
+
 window.onSelect=onSelect; window.onDelete=onDelete;
 </script>
 </body>
