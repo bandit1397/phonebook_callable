@@ -249,7 +249,7 @@ function parseCSVLine(line){
   for(let i=0;i<line.length;i++){
     const ch=line[i];
     if(ch==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else inQ=!inQ; continue; }
-    if(ch===',' && !inQ){ res.push(cur); cur=''; continue; }
+    if((ch===',' || ch==='\t') && !inQ){ res.push(cur); cur=''; continue; } // <- 탭 추가
     cur+=ch;
   }
   res.push(cur); return res;
