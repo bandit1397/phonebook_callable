@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 <title>연락처 관리 (모바일)</title>
 <style>
+/* --- 스타일 그대로 유지 --- */
 :root{
   --accent:#4456F0;
   --accent-2:#2f3dcf;
@@ -206,7 +207,7 @@ async function onDelete(index){
 
 function clearForm(){ nameInput.value=''; phoneInput.value=''; }
 
-// === 이름 검색만 적용 ===
+// === 검색 기능 ===
 searchInput.addEventListener('input', function () {
   const raw = (this.value || '').trim();
   if (raw.length < 1) {
@@ -214,11 +215,9 @@ searchInput.addEventListener('input', function () {
     return;
   }
 
-  const qFull = raw.replace(/\s+/g, '').toLowerCase(); // 공백 제거 소문자
-  const tokens = raw.toLowerCase().split(/\s+/).filter(t => t.length > 0); // 단어 토큰
-  const charTokens = [...qFull]; // 글자 단위 토큰
-
-  // 검색어에서 숫자 개수 체크용 맵
+  const qFull = raw.replace(/\s+/g, '').toLowerCase();
+  const tokens = raw.toLowerCase().split(/\s+/).filter(t => t.length > 0);
+  const charTokens = [...qFull];
   const queryNumMap = {};
   for (const ch of qFull) {
     if (/\d/.test(ch)) {
@@ -228,23 +227,15 @@ searchInput.addEventListener('input', function () {
 
   const results = phonebook.filter(e => {
     const nameNorm = (e.name || '').toLowerCase().replace(/\s+/g, '');
-
-    // 1) 전체 연속 매칭
     if (nameNorm.includes(qFull)) return true;
-
-    // 2) 토큰 매칭 (모든 단어 포함)
     if (tokens.every(token => nameNorm.includes(token))) return true;
-
-    // 3) 글자 단위 매칭 (모든 글자 포함)
     if (charTokens.every(ch => nameNorm.includes(ch))) {
-      // 숫자 개수 검사
       for (const [num, count] of Object.entries(queryNumMap)) {
         const targetCount = (nameNorm.match(new RegExp(num, 'g')) || []).length;
-        if (targetCount < count) return false; // 숫자 부족 → 불합격
+        if (targetCount < count) return false;
       }
       return true;
     }
-
     return false;
   });
 
@@ -253,7 +244,7 @@ searchInput.addEventListener('input', function () {
 
 btnReset.addEventListener('click',()=>{ searchInput.value=''; render(); });
 
-// --- CSV / PW 기능 그대로 ---
+// --- CSV 업로드 & 다운로드 ---
 fileInput.addEventListener('change',async(ev)=>{
   const file=ev.target.files[0]; if(!file)return;
   try{ const text=await readFileWithAutoEncoding(file); importCSVText(text); }
@@ -267,7 +258,7 @@ async function readFileWithAutoEncoding(file){
   return t;
 }
 function importCSVText(text){
-  const lines=text.replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(l=>l!=='');
+  const lines=text.replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(l!=='');
   if(!lines.length){ alert('빈 파일입니다.'); return; }
   let start=0; if(lines[0].toLowerCase().includes('name')&&lines[0].toLowerCase().includes('telephone')) start=1;
   let added=0;
@@ -279,7 +270,7 @@ function importCSVText(text){
     const exists=phonebook.some(p=>p.name===name&&p.phone===phone);
     if(!exists){ phonebook.push({name,phone}); added++; }
   }
-  save(); render(); alert(`${added}개의 새 연락처가 추가되었습니다.`);
+  save(); render(); if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
 }
 function parseCSVLine(line){
   const res=[]; let cur=''; let inQ=false;
@@ -317,7 +308,17 @@ btnResetPw.addEventListener('click',()=>{
 
 function csvSafe(s){ if(s==null) return ''; const str=String(s); if(str.includes(',')||str.includes('"')||str.includes('\n')) return '"'+str.replace(/"/g,'""')+'"'; return str; }
 
-load(); render();
+// --- GitHub Pages용: data.csv 자동 로드 ---
+async function loadDefaultCSV(){
+  try{
+    const res=await fetch('data.csv');
+    if(!res.ok) return; // 없으면 패스
+    const text=await res.text();
+    importCSVText(text);
+  }catch(e){ console.warn('기본 CSV 로드 실패:', e); }
+}
+
+load(); render(); loadDefaultCSV();
 window.onSelect=onSelect; window.onDelete=onDelete;
 </script>
 </body>
