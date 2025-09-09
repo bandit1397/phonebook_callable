@@ -5,184 +5,38 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 <title>연락처 관리 (모바일)</title>
 <style>
-:root {
-  --accent:#4456F0;
-  --accent-2:#2f3dcf;
-  --bg:#f4f6f9;
-  --card:#ffffff;
-  --muted:#666;
-}
-
-html,body {
-  height:100%;
-  margin:0;
-  font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial;
-}
-
-body {
-  background:var(--bg);
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
-
-/* 헤더 */
-header {
-  background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  color:#fff;
-  padding:14px 16px;
-  font-weight:700;
-  font-size:18px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-header .title {display:flex;flex-direction:column;}
-header .subtitle {font-size:12px;opacity:0.95;}
-
-/* 컨테이너 */
-.container {
-  padding:12px;
-  flex:1;
-  max-width:720px;
-  margin:0 auto;
-  box-sizing:border-box;
-}
-
-/* 검색 영역 */
-.searchRow {
-  display:flex;
-  gap:8px;
-  margin-bottom:10px;
-}
-.searchRow input {
-  flex:1;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ddd;
-  font-size:15px;
-}
-.btn {
-  background:var(--accent);
-  color:#fff;
-  border:none;
-  padding:10px 12px;
-  border-radius:8px;
-  font-weight:700;
-  cursor:pointer;
-  height:40px;
-}
-.btn.ghost {
-  background:transparent;
-  color:var(--accent);
-  border:1px solid var(--accent);
-}
-.form {
-  display:flex;
-  gap:8px;
-  margin-bottom:10px;
-}
-.form input {
-  flex:1;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ddd;
-  font-size:15px;
-}
-.controls {
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
-.controls input[type=file] {display:none;}
-
-.cardList {
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-/* 카드 */
-.card {
-  background:var(--card);
-  padding:12px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.06);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:8px;
-}
-.card .info {display:flex;flex-direction:column;}
-.card .name {font-weight:700;font-size:16px;}
-.card .phone {color:var(--muted);font-size:14px;}
-.card .actions {display:flex;gap:6px;align-items:center;}
-
-.linkCall {color:var(--accent);text-decoration:none;font-weight:600;}
-
-.danger {
-  background:#e74c3c;
-  color:#fff;
-  border:none;
-  padding:8px 10px;
-  border-radius:8px;
-  cursor:pointer;
-}
-.small {
-  padding:8px 10px;
-  font-size:14px;
-  height:40px;
-}
-.muted {
-  color:var(--muted);
-  font-size:13px;
-  text-align:center;
-  margin-top:8px;
-}
-
-/* 버튼 그룹 */
-.row-group {
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:8px;
-}
+:root{--accent:#4456F0;--accent-2:#2f3dcf;--bg:#f4f6f9;--card:#ffffff;--muted:#666;}
+html,body{height:100%;margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial;}
+body{background:var(--bg);display:flex;flex-direction:column;min-height:100vh;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:14px 16px;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:space-between}
+header .title{display:flex;flex-direction:column}
+header .subtitle{font-size:12px;opacity:0.95}
+.container{padding:12px;flex:1;max-width:720px;margin:0 auto;box-sizing:border-box;}
+.searchRow{display:flex;gap:8px;margin-bottom:10px;}
+.searchRow input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
+.btn{background:var(--accent);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-weight:700;cursor:pointer;height:40px;}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.form{display:flex;gap:8px;margin-bottom:10px}
+.form input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.controls input[type=file]{display:none}
+.cardList{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card .info{display:flex;flex-direction:column}
+.card .name{font-weight:700;font-size:16px}
+.card .phone{color:var(--muted);font-size:14px}
+.card .actions{display:flex;gap:6px;align-items:center}
+.linkCall{color:var(--accent);text-decoration:none;font-weight:600}
+.danger{background:#e74c3c;color:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+.small{padding:8px 10px;font-size:14px;height:40px;}
+.muted{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
+.row-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
 .row-group .btn,
-.row-group label {
-  flex:1;
-  min-width:120px;
-  height:40px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-sizing:border-box;
-  border-radius:8px;
-  font-weight:700;
-  cursor:pointer;
-  text-align:center;
-}
-.row-group label {
-  background:transparent;
-  color:var(--accent);
-  border:1px solid var(--accent);
-}
+.row-group label {flex:1;min-width:120px;height:40px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:8px;font-weight:700;cursor:pointer;text-align:center;}
+.row-group label {background: transparent;color: var(--accent);border:1px solid var(--accent);}
 .row-group label input[type=file]{display:none;}
-.row-group .small {flex:0 0 auto;}
-
-/* ✅ 모바일 최적화 */
-@media(max-width:600px){
-  header {font-size:16px;}
-  header .subtitle {font-size:11px;}
-  .form,
-  .searchRow,
-  .row-group {flex-direction:column;}
-  .card {flex-direction:column;align-items:flex-start;}
-  .card .actions {width:100%;justify-content:flex-end;}
-  .btn,
-  .row-group .btn,
-  .row-group label {width:100%;}
-}
+.row-group .small{flex:0 0 auto;}
+@media(max-width:600px){.form{flex-direction:column}.searchRow{flex-direction:column}.row-group{flex-direction:column}.card{flex-direction:column;align-items:flex-start}.card .actions{width:100%;justify-content:flex-end}}
 </style>
 </head>
 <body>
@@ -196,7 +50,7 @@ header .subtitle {font-size:12px;opacity:0.95;}
 
 <div class="container">
   <div class="searchRow">
-    <input id="search" type="text" placeholder="검색 (최소 2자, 입력한 모든 문자 포함)" />
+    <input id="search" type="text" placeholder="검색 (최소 2자, 입력한 모든 문자 포함이어야 함)" />
     <button class="btn ghost small" id="btnReset">모두보기</button>
   </div>
 
@@ -227,7 +81,6 @@ header .subtitle {font-size:12px;opacity:0.95;}
 </div>
 
 <script>
-/* === 기존 JS 기능 그대로 유지 === */
 const STORAGE_KEY='phonebook_v1',PW_KEY='phonebook_password',DEFAULT_PW='knp123';
 let phonebook=[],selectedIndex=null;
 
