@@ -249,10 +249,15 @@ function importCSVText(text){
     if(!parsed || parsed.length < 2) continue;
     const name=parsed[0].trim(), phone=parsed[1].trim();
     if(!name || !phone) continue;
-    const exists=phonebook.some(p=>p.name===name && p.phone===phone);
-    if(!exists){ phonebook.push({name, phone}); added++; }
+
+    // ✅ 중복 제거: 이름과 번호 둘 다 같으면 추가 안 함
+    if(!phonebook.some(p => p.name.trim() === name && p.phone.trim() === phone)){
+      phonebook.push({name, phone});
+      added++;
+    }
   }
-  save(); render(); if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
+  save(); render();
+  if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
 }
 
 function parseCSVLine(line){
