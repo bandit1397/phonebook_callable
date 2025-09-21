@@ -124,15 +124,27 @@ function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(phonebook))}
 function render(list=null){
   const data=list||phonebook;
   cardList.innerHTML='';
-  if(!data.length){ cardList.innerHTML='<div class="muted">저장된 연락처가 없습니다.</div>'; return; }
+  if(!data.length){ 
+    cardList.innerHTML='<div class="muted">저장된 연락처가 없습니다.</div>'; 
+    return; 
+  }
+
   data.forEach((entry,idx)=>{
     const idxInMain=phonebook.indexOf(entry);
     const card=document.createElement('div');
     card.className='card';
+
+    // ✅ 전화번호 여러 개 지원
+    let phoneLinks = '';
+    const phones = entry.phone.split('/').map(p => p.trim()).filter(p => p);
+    phones.forEach(p => {
+      phoneLinks += `<div><a class="linkCall" href="tel:${sanitizeTel(p)}" onclick="event.stopPropagation()">${escapeHtml(p)}</a></div>`;
+    });
+
     card.innerHTML=`
       <div class="info">
         <div class="name">${escapeHtml(entry.name)}</div>
-        <div class="phone"><a class="linkCall" href="tel:${sanitizeTel(entry.phone)}" onclick="event.stopPropagation()">${escapeHtml(entry.phone)}</a></div>
+        <div class="phone">${phoneLinks}</div>
       </div>
       <div class="actions">
         <button class="small" onclick="onSelect(${idxInMain}); event.stopPropagation();">선택</button>
