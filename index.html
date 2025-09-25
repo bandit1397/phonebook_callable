@@ -203,10 +203,35 @@ async function onDelete(index){
 
 function clearForm(){ nameInput.value=''; phoneInput.value=''; }
 
-btnReset.addEventListener('click',()=>{
-  searchInput.value='';  // 입력 초기화
-  render();               // 전체 연락처 렌더링
+// === 검색 ===
+searchInput.addEventListener('input', function () {
+  const raw = (this.value || '').trim();
+  if (raw.length < 1) { render(); return; }
+
+  const qFull = raw.replace(/\s+/g, '').toLowerCase();
+  const tokens = raw.toLowerCase().split(/\s+/).filter(t => t.length > 0);
+  const charTokens = [...qFull];
+  const queryNumMap = {};
+  for (const ch of qFull) { if (/\d/.test(ch)) queryNumMap[ch] = (queryNumMap[ch] || 0) + 1; }
+
+  const results = phonebook.filter(e => {
+    const nameNorm = (e.name || '').toLowerCase().replace(/\s+/g, '');
+    if (nameNorm.includes(qFull)) return true;
+    if (tokens.every(token => nameNorm.includes(token))) return true;
+    if (charTokens.every(ch => nameNorm.includes(ch))) {
+      for (const [num, count] of Object.entries(queryNumMap)) {
+        const targetCount = (nameNorm.match(new RegExp(num, 'g')) || []).length;
+        if (targetCount < count) return false;
+      }
+      return true;
+    }
+    return false;
+  });
+
+  render(results);
 });
+
+btnReset.addEventListener('click',()=>{ searchInput.value=''; render(); });
 
 // === CSV 기능 ===
 fileInput.addEventListener('change',async(ev)=>{
