@@ -121,11 +121,12 @@ function load(){
 }
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(phonebook))}
 
-function render(list=null){
-  const data=list||phonebook;
+function render(list=null, forceAll=false){
+  const data = list || (forceAll ? phonebook : []);
   cardList.innerHTML='';
+
   if(!data.length){ 
-    cardList.innerHTML='<div class="muted">저장된 연락처가 없습니다.</div>'; 
+    cardList.innerHTML='<div class="muted">검색어를 입력하면 연락처가 표시됩니다.</div>'; 
     return; 
   }
 
@@ -155,6 +156,7 @@ function render(list=null){
     cardList.appendChild(card);
   });
 }
+
 
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function sanitizeTel(t){ if(!t) return ''; return String(t).replace(/[^\d\+]/g,''); }
@@ -231,7 +233,10 @@ searchInput.addEventListener('input', function () {
   render(results);
 });
 
-btnReset.addEventListener('click',()=>{ searchInput.value=''; render(); });
+btnReset.addEventListener('click',()=>{
+  searchInput.value='';
+  render(phonebook, true); // forceAll=true → 전체 표시
+});
 
 // === CSV 기능 ===
 fileInput.addEventListener('change',async(ev)=>{
@@ -321,7 +326,9 @@ async function loadDefaultCSV(){
   }
 }
 
-load(); render(); loadDefaultCSV();
+load(); 
+render(); // forceAll=false 이므로 초기에는 아무 것도 표시되지 않음
+loadDefaultCSV();
 
 window.onSelect=onSelect; window.onDelete=onDelete;
 </script>
