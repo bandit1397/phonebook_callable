@@ -97,6 +97,7 @@ header .subtitle{font-size:12px;opacity:0.95}
 const STORAGE_KEY='phonebook_v1',PW_KEY='phonebook_password',DEFAULT_PW='knp123';
 let phonebook=[],selectedIndex=null;
 let showAll = false;
+load(); render(); loadDefaultCSV();
 
 const cardList=document.getElementById('cardList');
 const nameInput=document.getElementById('name');
@@ -130,24 +131,18 @@ function render(list=null){
     return; 
   }
 
-  data.forEach((entry,idx)=>{
-    const idxInMain=phonebook.indexOf(entry);
-    const card=document.createElement('div');
-    card.className='card';
+  data.forEach((entry, idx) => {
+    const idxInMain = phonebook.indexOf(entry);
+    const card = document.createElement('div');
+    card.className = 'card';
 
-    // ✅ 전화번호 여러 개 지원
-    let phoneLinks = '';
-      const phones = entry.phone.split('/').map(p => p.trim()).filter(p => p);
+    // ✅ 전화번호 여러 개 지원, 모두보기 클릭 여부 체크
+    const phones = entry.phone.split('/').map(p => p.trim()).filter(p => p);
+    const phoneLinks = showAll
+      ? phones.map(p => `<div><a class="linkCall" href="tel:${sanitizeTel(p)}" onclick="event.stopPropagation()">${escapeHtml(p)}</a></div>`).join('')
+      : `<div class="muted">전화번호는 모두보기 클릭 시 표시됩니다.</div>`;
 
-      // 여기서 '모두보기 클릭 여부'를 체크
-      if(showAll) { // showAll은 새 변수
-        phones.forEach(p => {
-          phoneLinks += `<div><a class="linkCall" href="tel:${sanitizeTel(p)}" onclick="event.stopPropagation()">${escapeHtml(p)}</a></div>`;
-        });
-      } else {
-        phoneLinks = `<div class="muted">전화번호는 모두보기 클릭 시 표시됩니다.</div>`;
-      }
-    card.innerHTML=`
+    card.innerHTML = `
       <div class="info">
         <div class="name">${escapeHtml(entry.name)}</div>
         <div class="phone">${phoneLinks}</div>
@@ -157,7 +152,8 @@ function render(list=null){
         <button class="danger small" onclick="onDelete(${idxInMain}); event.stopPropagation();">삭제</button>
       </div>
     `;
-    card.addEventListener('click',()=>onSelect(idxInMain));
+
+    card.addEventListener('click', () => onSelect(idxInMain));
     cardList.appendChild(card);
   });
 }
