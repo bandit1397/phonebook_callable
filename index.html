@@ -96,6 +96,7 @@ header .subtitle{font-size:12px;opacity:0.95}
 <script>
 const STORAGE_KEY='phonebook_v1',PW_KEY='phonebook_password',DEFAULT_PW='knp123';
 let phonebook=[],selectedIndex=null;
+let showAll = false;
 
 const cardList=document.getElementById('cardList');
 const nameInput=document.getElementById('name');
@@ -136,11 +137,16 @@ function render(list=null){
 
     // ✅ 전화번호 여러 개 지원
     let phoneLinks = '';
-    const phones = entry.phone.split('/').map(p => p.trim()).filter(p => p);
-    phones.forEach(p => {
-      phoneLinks += `<div><a class="linkCall" href="tel:${sanitizeTel(p)}" onclick="event.stopPropagation()">${escapeHtml(p)}</a></div>`;
-    });
+      const phones = entry.phone.split('/').map(p => p.trim()).filter(p => p);
 
+      // 여기서 '모두보기 클릭 여부'를 체크
+      if(showAll) { // showAll은 새 변수
+        phones.forEach(p => {
+          phoneLinks += `<div><a class="linkCall" href="tel:${sanitizeTel(p)}" onclick="event.stopPropagation()">${escapeHtml(p)}</a></div>`;
+        });
+      } else {
+        phoneLinks = `<div class="muted">전화번호는 모두보기 클릭 시 표시됩니다.</div>`;
+      }
     card.innerHTML=`
       <div class="info">
         <div class="name">${escapeHtml(entry.name)}</div>
@@ -231,7 +237,11 @@ searchInput.addEventListener('input', function () {
   render(results);
 });
 
-btnReset.addEventListener('click',()=>{ searchInput.value=''; render(); });
+btnReset.addEventListener('click', ()=>{
+  searchInput.value = '';
+  showAll = true; // 모두보기 클릭 시 전화번호 표시
+  render();
+});
 
 // === CSV 기능 ===
 fileInput.addEventListener('change',async(ev)=>{
