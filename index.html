@@ -233,9 +233,17 @@ searchInput.addEventListener('input', function () {
   render(results);
 });
 
-btnReset.addEventListener('click',()=>{
-  searchInput.value='';
-  render(phonebook, true); // forceAll=true → 전체 표시
+let showAll = false; // 전체보기 토글 상태
+
+btnReset.addEventListener('click', ()=>{
+  showAll = !showAll; // 상태 반전
+  if(showAll){
+    render(phonebook, true); // 전체 표시
+    btnReset.textContent = '보기 숨기기'; // 버튼 텍스트 변경
+  } else {
+    render([], true); // 전체 초기화 (빈 화면)
+    btnReset.textContent = '모두보기';
+  }
 });
 
 // === CSV 기능 ===
