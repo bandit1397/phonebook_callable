@@ -1,1 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>연락처 관리 (모바일)</title>
+<style>
+:root{--accent:#4456F0;--accent-2:#2f3dcf;--bg:#f4f6f9;--card:#ffffff;--muted:#666;}
+html,body{
+  height:100%;
+  margin:0;
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial;
+  overflow-x:hidden;
+}
+body{background:var(--bg);display:flex;flex-direction:column;min-height:100vh;}
+header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:14px 16px;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:space-between}
+header .title{display:flex;flex-direction:column}
+header .subtitle{font-size:12px;opacity:0.95}
+.container{padding:12px;flex:1;width:100%;max-width:720px;margin:0 auto;box-sizing:border-box;}
+.searchRow{display:flex;gap:8px;margin-bottom:10px;}
+.searchRow input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
+.btn{background:var(--accent);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-weight:700;cursor:pointer;height:40px;}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.form{display:flex;gap:8px;margin-bottom:10px}
+.form input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.controls input[type=file]{display:none}
+.cardList{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card .info{display:flex;flex-direction:column}
+.card .name{font-weight:700;font-size:16px}
+.card .phone{color:var(--muted);font-size:14px}
+.card .actions{display:flex;gap:6px;align-items:center}
+.linkCall{color:var(--accent);text-decoration:none;font-weight:600}
+.danger{background:#e74c3c;color:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+.small{padding:8px 10px;font-size:14px;height:40px;}
+.muted{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
+.row-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.row-group .btn,
+.row-group label {flex:1;min-width:120px;height:40px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:8px;font-weight:700;cursor:pointer;text-align:center;}
+.row-group label {background: transparent;color: var(--accent);border:1px solid var(--accent);}
+.row-group label input[type=file]{display:none;}
+.row-group .small{flex:0 0 auto;}
+@media(max-width:600px){
+  .form,
+  .searchRow,
+  .row-group { flex-direction:column; gap:10px; }
+  .card{flex-direction:column;align-items:flex-start}
+  .card .actions{width:100%;justify-content:space-between}
+  .btn { width:100%; font-size:16px; }
+  input { font-size:16px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <div>Phonebook</div>
+    <div class="subtitle">모바일용 로컬 연락처 관리 (오프라인)</div>
+  </div>
+  <div style="font-size:13px;opacity:0.9">안전: 로컬저장</div>
+</header>
 
+<div class="container">
+  <div class="searchRow">
+    <input id="search" type="text" placeholder="검색 (최소 2자, 입력한 모든 문자 포함이어야 함)" />
+    <button class="btn ghost small" id="btnReset">모두보기</button>
+  </div>
+
+  <div class="form">
+    <input id="name" type="text" placeholder="이름">
+    <input id="phone" type="tel" placeholder="전화번호">
+  </div>
+
+  <div class="row-group">
+    <button class="btn" id="btnAdd">추가</button>
+    <button class="btn ghost" id="btnUpdate">수정</button>
+  </div>
+
+  <div class="row-group">
+    <label for="fileInput">CSV 선택
+      <input id="fileInput" type="file" accept=".csv,text/csv">
+    </label>
+    <button class="btn" id="btnExportCSV">CSV(out)</button>
+  </div>
+
+  <div class="row-group">
+    <button class="btn ghost" id="btnChangePw">비밀번호 변경</button>
+    <button class="btn ghost" id="btnResetPw">비밀번호 초기화</button>
+  </div>
+
+  <div class="cardList" id="cardList"></div>
+  <div class="muted">전화번호 탭 → 바로 전화 연결. 삭제 시 비밀번호 필요.</div>
+</div>
+
+<script>
+const STORAGE_KEY='phonebook_v1',PW_KEY='phonebook_password',DEFAULT_PW='knp123';
+let phonebook=[],selectedIndex=null;
+
+const cardList=document.getElementById('cardList');
+const nameInput=document.getElementById('name');
+const phoneInput=document.getElementById('phone');
+const searchInput=document.getElementById('search');
+const fileInput=document.getElementById('fileInput');
+const btnAdd=document.getElementById('btnAdd');
+const btnUpdate=document.getElementById('btnUpdate');
+const btnReset=document.getElementById('btnReset');
+const btnExportCSV=document.getElementById('btnExportCSV');
+const btnChangePw=document.getElementById('btnChangePw');
+const btnResetPw=document.getElementById('btnResetPw');
+
+if(!localStorage.getItem(PW_KEY)) localStorage.setItem(PW_KEY,DEFAULT_PW);
+
+function load(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    phonebook = raw ? JSON.parse(raw) : [];
+    phonebook = phonebook.filter(p => p && p.name && p.phone);
+    save();
+  }catch(e){console.error(e); phonebook=[];}
+}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(phonebook))}
+
+function render(list=null, forceAll=false){
+  const data = list || (forceAll ? phonebook : []);
+  cardList.innerHTML='';
+
+  if(!data.length){ 
+    cardList.innerHTML='<div class="muted">검색어를 입력하면 연락처가 표시됩니다.</div>'; 
+    return; 
+  }
+
+  data.forEach((entry,idx)=>{
+    const idxInMain=phonebook.indexOf(entry);
+    const card=document.createElement('div');
+    card.className='card';
+
+    // ✅ 전화번호 여러 개 지원
+    let phoneLinks = '';
+    const phones = entry.phone.split('/').map(p => p.trim()).filter(p => p);
+    phones.forEach(p => {
+      phoneLinks += `<div><a class="linkCall" href="tel:${sanitizeTel(p)}" onclick="event.stopPropagation()">${escapeHtml(p)}</a></div>`;
+    });
+
+    card.innerHTML=`
+      <div class="info">
+        <div class="name">${escapeHtml(entry.name)}</div>
+        <div class="phone">${phoneLinks}</div>
+      </div>
+      <div class="actions">
+        <button class="small" onclick="onSelect(${idxInMain}); event.stopPropagation();">선택</button>
+        <button class="danger small" onclick="onDelete(${idxInMain}); event.stopPropagation();">삭제</button>
+      </div>
+    `;
+    card.addEventListener('click',()=>onSelect(idxInMain));
+    cardList.appendChild(card);
+  });
+}
+
+
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sanitizeTel(t){ if(!t) return ''; return String(t).replace(/[^\d\+]/g,''); }
+
+btnAdd.addEventListener('click',()=>{
+  const name=nameInput.value.trim(),phone=phoneInput.value.trim();
+  if(!name||!phone){alert('이름과 전화번호를 입력하세요.');return;}
+
+  const pw=localStorage.getItem(PW_KEY)||DEFAULT_PW;
+  const input=prompt('추가하려면 비밀번호를 입력하세요:'); if(input===null)return;
+  if(input!==pw){alert('비밀번호 불일치. 추가 취소.');return;}
+
+  const exists=phonebook.some(p=>p.name===name&&p.phone===phone);
+  if(exists&&!confirm('동일한 연락처가 이미 있습니다. 그래도 추가하시겠습니까?'))return;
+  phonebook.push({name,phone});
+  save(); clearForm(); render();
+});
+
+function onSelect(index){ selectedIndex=index; const e=phonebook[index]; if(!e)return; nameInput.value=e.name; phoneInput.value=e.phone; }
+
+btnUpdate.addEventListener('click',()=>{
+  if(selectedIndex===null){alert('수정할 연락처를 선택하세요.');return;}
+  const name=nameInput.value.trim(),phone=phoneInput.value.trim();
+  if(!name||!phone){alert('이름과 전화번호를 입력하세요.');return;}
+
+  const pw=localStorage.getItem(PW_KEY)||DEFAULT_PW;
+  const input=prompt('수정하려면 비밀번호를 입력하세요:'); if(input===null)return;
+  if(input!==pw){alert('비밀번호 불일치. 수정 취소.');return;}
+
+  const duplicate=phonebook.some((p,i)=>i!==selectedIndex&&p.name===name&&p.phone===phone);
+  if(duplicate){alert('같은 이름과 번호가 존재합니다. 수정 취소.');return;}
+  phonebook[selectedIndex]={name,phone};
+  save(); clearForm(); selectedIndex=null; render();
+});
+
+async function onDelete(index){
+  const pw=localStorage.getItem(PW_KEY)||DEFAULT_PW;
+  const input=prompt('삭제하려면 비밀번호를 입력하세요:'); if(input===null)return;
+  if(input!==pw){alert('비밀번호 불일치. 삭제 취소.');return;}
+  if(!confirm(`"${phonebook[index].name}" 을(를) 삭제하시겠습니까?`))return;
+  phonebook.splice(index,1);
+  save();
+  if(selectedIndex===index) selectedIndex=null;
+  clearForm(); render();
+}
+
+function clearForm(){ nameInput.value=''; phoneInput.value=''; }
+
+// === 검색 ===
+searchInput.addEventListener('input', function () {
+  const raw = (this.value || '').trim();
+  if (raw.length < 1) { render(); return; }
+
+  const qFull = raw.replace(/\s+/g, '').toLowerCase();
+  const tokens = raw.toLowerCase().split(/\s+/).filter(t => t.length > 0);
+  const charTokens = [...qFull];
+  const queryNumMap = {};
+  for (const ch of qFull) { if (/\d/.test(ch)) queryNumMap[ch] = (queryNumMap[ch] || 0) + 1; }
+
+  const results = phonebook.filter(e => {
+    const nameNorm = (e.name || '').toLowerCase().replace(/\s+/g, '');
+    if (nameNorm.includes(qFull)) return true;
+    if (tokens.every(token => nameNorm.includes(token))) return true;
+    if (charTokens.every(ch => nameNorm.includes(ch))) {
+      for (const [num, count] of Object.entries(queryNumMap)) {
+        const targetCount = (nameNorm.match(new RegExp(num, 'g')) || []).length;
+        if (targetCount < count) return false;
+      }
+      return true;
+    }
+    return false;
+  });
+
+  render(results);
+});
+
+btnReset.addEventListener('click',()=>{
+  searchInput.value='';
+  render(phonebook, true); // forceAll=true → 전체 표시
+});
+
+// === CSV 기능 ===
+fileInput.addEventListener('change',async(ev)=>{
+  const file=ev.target.files[0]; if(!file)return;
+  try{ const text=await readFileWithAutoEncoding(file); importCSVText(text); }
+  catch(err){console.error(err); alert('파일 읽기 오류'); }
+  finally{ fileInput.value=''; }
+});
+
+async function readFileWithAutoEncoding(file){
+  const ab=await file.arrayBuffer(); let t;
+  try{t=new TextDecoder('utf-8',{fatal:false}).decode(ab);}catch(e){t=new TextDecoder('utf-8').decode(ab);}
+  if((t.match(/\uFFFD/g)||[]).length>Math.max(1,Math.floor(t.length*0.01))){ try{t=new TextDecoder('euc-kr').decode(ab);}catch(e){console.warn('euc-kr decode failed',e);} }
+  return t;
+}
+
+function importCSVText(text){
+  const lines=text.replace(/\r/g,'').split('\n').map(l => l.trim()).filter(l => l !== '');
+  if(!lines.length){ alert('빈 파일입니다.'); return; }
+
+  let start=0;
+  if(lines[0].includes('이름') && lines[0].includes('전화번호')) start=1;
+
+  let added=0;
+  for(let i=start;i<lines.length;i++){
+    const parsed=parseCSVLine(lines[i]);
+    if(!parsed || parsed.length < 2) continue;
+    const name=parsed[0].trim(), phone=parsed[1].trim();
+    if(!name || !phone) continue;
+
+    // ✅ 중복 제거: 이름과 번호 둘 다 같으면 추가 안 함
+    if(!phonebook.some(p => p.name.trim() === name && p.phone.trim() === phone)){
+      phonebook.push({name, phone});
+      added++;
+    }
+  }
+  save(); render();
+  if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
+}
+
+function parseCSVLine(line){
+  const res=[]; let cur=''; let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){ if(inQ && line[i+1]==='"'){ cur+='"'; i++; } else inQ=!inQ; continue; }
+    if((ch===',' || ch==='\t') && !inQ){ res.push(cur); cur=''; continue; }
+    cur+=ch;
+  }
+  res.push(cur); return res;
+}
+
+btnExportCSV.addEventListener('click',()=>{
+  if(!phonebook.length){alert('내보낼 연락처가 없습니다.'); return;}
+  let csv='Name,Telephone\n';
+  phonebook.forEach(p=>{ csv+=`${csvSafe(p.name)},${csvSafe(p.phone)}\n`; });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='phonebook.csv'; document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+btnChangePw.addEventListener('click',()=>{
+  const current=localStorage.getItem(PW_KEY)||DEFAULT_PW;
+  const curInput=prompt('현재 비밀번호를 입력하세요:'); if(curInput===null)return;
+  if(curInput!==current){alert('현재 비밀번호가 틀렸습니다.');return;}
+  const newPw=prompt('새 비밀번호를 입력하세요 (공백 불가):'); if(newPw===null)return;
+  if(!newPw||newPw.trim().length===0){alert('유효하지 않은 비밀번호입니다.'); return;}
+  localStorage.setItem(PW_KEY,newPw); alert('비밀번호가 변경되었습니다.');
+});
+
+btnResetPw.addEventListener('click',()=>{
+  if(!confirm(`비밀번호를 초기화하면 "${DEFAULT_PW}"(으)로 설정됩니다. 진행하시겠습니까?`))return;
+  localStorage.setItem(PW_KEY,DEFAULT_PW); alert(`비밀번호가 초기화되었습니다. (${DEFAULT_PW})`);
+});
+
+function csvSafe(s){ if(s==null) return ''; const str=String(s); if(str.includes(',')||str.includes('"')||str.includes('\n')) return '"'+str.replace(/"/g,'""')+'"'; return str; }
+
+// === data.csv 자동 불러오기 (배포용) ===
+async function loadDefaultCSV(){
+  try{
+    const res = await fetch('data.csv');
+    if(!res.ok) return; 
+    const text = await res.text();
+    importCSVText(text);
+  }catch(e){
+    console.warn('data.csv 불러오기 실패', e);
+  }
+}
+
+load(); 
+render(); // forceAll=false 이므로 초기에는 아무 것도 표시되지 않음
+loadDefaultCSV();
+
+window.onSelect=onSelect; window.onDelete=onDelete;
+</script>
+</body>
+</html>
