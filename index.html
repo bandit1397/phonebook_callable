@@ -335,9 +335,17 @@ async function loadDefaultCSV(){
   }
 }
 
-load(); 
-render(); // forceAll=false 이므로 초기에는 아무 것도 표시되지 않음
-loadDefaultCSV();
+document.addEventListener("DOMContentLoaded", async () => {
+
+    try {
+        await loadFromServerCSV();       // ① GitHub CSV 최신 데이터 로드 시도
+        saveToLocalStorage(phonebook);   // ② 성공 시 LocalStorage에 자동 저장 (캐싱)
+    } catch(e) {
+        load(); // ③ GitHub 불러오기 실패 시 LocalStorage 데이터 사용
+    }
+
+    render(phonebook, showAll); // ④ 최종 화면 표시
+});
 
 window.onSelect=onSelect; window.onDelete=onDelete;
 </script>
