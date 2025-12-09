@@ -336,7 +336,7 @@ async function loadDefaultCSV(){
 }
 
 load(); 
-render(); // forceAll=false 이므로 초기에는 아무 것도 표시되지 않음
+render(); // forceAll=false → 초기 화면 비어있음
 loadDefaultCSV();
 
 window.onSelect=onSelect; window.onDelete=onDelete;
