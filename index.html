@@ -326,10 +326,18 @@ function csvSafe(s){ if(s==null) return ''; const str=String(s); if(str.includes
 // === data.csv 자동 불러오기 (배포용) ===
 async function loadDefaultCSV(){
   try{
-    const res = await fetch('data.csv');
-    if(!res.ok) return; 
+    const res = await fetch('data.csv', { cache: 'no-store' });
+    if(!res.ok) return;
+
     const text = await res.text();
+
+    // 🔥 기존 localStorage 데이터 완전 제거
+    phonebook = [];
+    save();
+
+    // 🔥 data.csv 내용만 다시 로드
     importCSVText(text);
+
   }catch(e){
     console.warn('data.csv 불러오기 실패', e);
   }
