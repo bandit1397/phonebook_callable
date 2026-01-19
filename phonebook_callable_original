@@ -90,7 +90,8 @@ header .subtitle{font-size:12px;opacity:0.95}
   </div>
 
   <div class="cardList" id="cardList"></div>
-  <div class="muted">전화번호 탭 → 바로 전화 연결. 삭제 시 비밀번호 필요.</div>
+  <div class="muted">추가 번호는 아래 "오류&추가의견 남기기"에 남기는 센스</div>
+  <div class="muted">어떤 번호는 가끔 우리의 힘이 됩니다(개인정보)</div>
 </div>
 
 <script>
@@ -121,11 +122,12 @@ function load(){
 }
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(phonebook))}
 
-function render(list=null){
-  const data=list||phonebook;
+function render(list=null, forceAll=false){
+  const data = list || (forceAll ? phonebook : []);
   cardList.innerHTML='';
+
   if(!data.length){ 
-    cardList.innerHTML='<div class="muted">저장된 연락처가 없습니다.</div>'; 
+    cardList.innerHTML='<div class="muted">검색어를 입력하면 연락처가 표시됩니다.</div>'; 
     return; 
   }
 
@@ -155,6 +157,7 @@ function render(list=null){
     cardList.appendChild(card);
   });
 }
+
 
 function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function sanitizeTel(t){ if(!t) return ''; return String(t).replace(/[^\d\+]/g,''); }
@@ -231,7 +234,18 @@ searchInput.addEventListener('input', function () {
   render(results);
 });
 
-btnReset.addEventListener('click',()=>{ searchInput.value=''; render(); });
+let showAll = false; // 전체보기 토글 상태
+
+btnReset.addEventListener('click', ()=>{
+  showAll = !showAll; // 상태 반전
+  if(showAll){
+    render(phonebook, true); // 전체 표시
+    btnReset.textContent = '보기 숨기기'; // 버튼 텍스트 변경
+  } else {
+    render([], true); // 전체 초기화 (빈 화면)
+    btnReset.textContent = '모두보기';
+  }
+});
 
 // === CSV 기능 ===
 fileInput.addEventListener('change',async(ev)=>{
@@ -321,9 +335,23 @@ async function loadDefaultCSV(){
   }
 }
 
-load(); render(); loadDefaultCSV();
+load(); 
+render(); // forceAll=false → 초기 화면 비어있음
+loadDefaultCSV();
 
 window.onSelect=onSelect; window.onDelete=onDelete;
 </script>
+
+<!-- 여기에 주가 전화번호 남기기 버튼 삽입 -->
+<div style="text-align: center;">
+  <button 
+    id="feedback-btn"
+    style="padding:12px 20px; font-size:16px; background:#007bff; color:white; border:none; border-radius:6px; cursor:pointer;"
+    onclick="window.open('https://tally.so/r/dWElLr', '_blank');"
+  >
+    추가 전화번호 남기기
+  </button>
+</div>
+  
 </body>
 </html>
