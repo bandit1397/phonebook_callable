@@ -262,7 +262,7 @@ async function readFileWithAutoEncoding(file){
   return t;
 }
 
-function importCSVText(text){
+function importCSVText(text, options = {}){
   const lines=text.replace(/\r/g,'').split('\n').map(l => l.trim()).filter(l => l !== '');
   if(!lines.length){ alert('빈 파일입니다.'); return; }
 
