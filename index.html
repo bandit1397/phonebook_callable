@@ -283,7 +283,8 @@ function importCSVText(text, options = {}){
     }
   }
   save(); render();
-  if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
+  if(added > 0 && !options.silent){
+  alert(`${added}개의 새 연락처가 추가되었습니다.`);
 }
 
 function parseCSVLine(line){
