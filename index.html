@@ -337,7 +337,7 @@ async function loadDefaultCSV(){
     save();
 
     // 🔥 data.csv 내용만 다시 로드
-    importCSVText(text);
+    importCSVText(text, { silent:true });
 
   }catch(e){
     console.warn('data.csv 불러오기 실패', e);
