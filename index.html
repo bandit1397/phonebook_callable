@@ -218,6 +218,8 @@ searchInput.addEventListener('input', function () {
   const queryNumMap = {};
   for (const ch of qFull) { if (/\d/.test(ch)) queryNumMap[ch] = (queryNumMap[ch] || 0) + 1; }
 
+  const base = csvBaseBook.length ? csvBaseBook : phonebook;
+
   const results = phonebook.filter(e => {
     const nameNorm = (e.name || '').toLowerCase().replace(/\s+/g, '');
     if (nameNorm.includes(qFull)) return true;
