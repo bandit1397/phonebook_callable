@@ -262,7 +262,7 @@ async function readFileWithAutoEncoding(file){
   return t;
 }
 
-function importCSVText(text){
+function importCSVText(text, options = {}){
   const lines=text.replace(/\r/g,'').split('\n').map(l => l.trim()).filter(l => l !== '');
   if(!lines.length){ alert('빈 파일입니다.'); return; }
 
@@ -283,7 +283,9 @@ function importCSVText(text){
     }
   }
   save(); render();
-  if(added>0) alert(`${added}개의 새 연락처가 추가되었습니다.`);
+  if(added > 0 && !options.silent){
+  alert(`${added}개의 새 연락처가 추가되었습니다.`);
+  }
 }
 
 function parseCSVLine(line){
@@ -336,7 +338,7 @@ async function loadDefaultCSV(){
     save();
 
     // 🔥 data.csv 내용만 다시 로드
-    importCSVText(text);
+    importCSVText(text, { silent:true });
 
   }catch(e){
     console.warn('data.csv 불러오기 실패', e);
