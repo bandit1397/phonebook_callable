@@ -340,6 +340,7 @@ async function loadDefaultCSV(){
 
     // 🔥 data.csv 내용만 다시 로드
     importCSVText(text, { silent:true });
+    csvBaseBook = phonebook.map(p => ({ ...p }));
 
   }catch(e){
     console.warn('data.csv 불러오기 실패', e);
