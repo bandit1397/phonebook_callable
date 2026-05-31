@@ -72,22 +72,24 @@ header .subtitle{font-size:12px;opacity:0.95}
     <input id="phone" type="tel" placeholder="전화번호">
   </div>
 
-  //<div class="row-group">
-    //<button class="btn" id="btnAdd">추가</button>
-    //<button class="btn ghost" id="btnUpdate">수정</button>
-  //</div>
+  <div id="adminArea" style="display:none;">
+    <div class="row-group">
+      <button class="btn" id="btnAdd">추가</button>
+      <button class="btn ghost" id="btnUpdate">수정</button>
+    </div>
 
-  //<div class="row-group">
-    //<label for="fileInput">CSV 선택
-      //<input id="fileInput" type="file" accept=".csv,text/csv">
-    //</label>
-    //<button class="btn" id="btnExportCSV">CSV(out)</button>
-  //</div>
+    <div class="row-group">
+      <label for="fileInput">CSV 선택
+        <input id="fileInput" type="file" accept=".csv,text/csv">
+      </label>
+      <button class="btn" id="btnExportCSV">CSV(out)</button>
+    </div>
 
-  //<div class="row-group">
-    //<button class="btn ghost" id="btnChangePw">비밀번호 변경</button>
-    //<button class="btn ghost" id="btnResetPw">비밀번호 초기화</button>
-  //</div>
+    <div class="row-group">
+      <button class="btn ghost" id="btnChangePw">비밀번호 변경</button>
+      <button class="btn ghost" id="btnResetPw">비밀번호 초기화</button>
+    </div>
+  </div>
 
   <div class="cardList" id="cardList"></div>
   <div class="muted">추가 번호는 아래 "오류&추가의견 남기기"에 남기는 센스</div>
