@@ -63,7 +63,7 @@ header .subtitle{font-size:12px;opacity:0.95}
 
 <div class="container">
   <div class="searchRow">
-    <input id="search" type="text" placeholder="검색 (최소 2자, 입력한 모든 문자 포함이어야 함)" />
+    <input id="search" type="text" placeholder="검색 (이름 또는 전화번호)" />
     <button class="btn ghost small" id="btnReset">모두보기</button>
   </div>
 
@@ -208,7 +208,7 @@ async function onDelete(index){
 
 function clearForm(){ nameInput.value=''; phoneInput.value=''; }
 
-// === 검색 ===
+// === 검색 (이름 + 전화번호) ===
 searchInput.addEventListener('input', function () {
   const raw = (this.value || '').trim();
   if (raw.length < 1) { render(); return; }
@@ -219,8 +219,19 @@ searchInput.addEventListener('input', function () {
   const queryNumMap = {};
   for (const ch of qFull) { if (/\d/.test(ch)) queryNumMap[ch] = (queryNumMap[ch] || 0) + 1; }
 
+  // 전화번호 검색용: 입력값에서 숫자만 추출
+  const qDigits = raw.replace(/\D/g, '');
+
   const results = phonebook.filter(e => {
     const nameNorm = (e.name || '').toLowerCase().replace(/\s+/g, '');
+
+    // --- 전화번호로 검색 ---
+    const phoneNorm = (e.phone || '').toLowerCase().replace(/\s+/g, '');
+    const phoneDigits = (e.phone || '').replace(/\D/g, '');
+    if (qDigits.length >= 2 && phoneDigits.includes(qDigits)) return true;
+    if (phoneNorm.includes(qFull)) return true;
+
+    // --- 이름으로 검색 ---
     if (nameNorm.includes(qFull)) return true;
     if (tokens.every(token => nameNorm.includes(token))) return true;
     if (charTokens.every(ch => nameNorm.includes(ch))) {
