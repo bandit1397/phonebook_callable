@@ -82,6 +82,8 @@ header .badge{font-size:12px;background:rgba(255,255,255,0.18);padding:5px 10px;
 .cardList > .muted.noResult{background:#f6f7fa;border-color:#d6dbe6;color:var(--muted)}
 .cardList > .muted.noResult::before{content:"🙅 "}
 body.has-results .callout{display:none}
+/* 선택/삭제 버튼: 관리자 영역이 숨겨져 있으면 일반 사용자에게도 숨김 */
+#adminArea[style*="none"] ~ .cardList .card .actions{display:none}
 .notes{margin-top:14px}
 
 @media(max-width:600px){
