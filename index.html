@@ -79,6 +79,9 @@ header .badge{font-size:12px;background:rgba(255,255,255,0.18);padding:5px 10px;
 .muted{color:var(--muted);font-size:13px;text-align:center;margin-top:8px;line-height:1.5}
 .cardList > .muted{background:#eef2ff;border:1px dashed #a5b0f7;color:#3b49c9;font-weight:600;font-size:14px;border-radius:14px;padding:18px 12px;margin:0}
 .cardList > .muted::before{content:"🔍 "}
+.cardList > .muted.noResult{background:#f6f7fa;border-color:#d6dbe6;color:var(--muted)}
+.cardList > .muted.noResult::before{content:"🙅 "}
+body.has-results .callout{display:none}
 .notes{margin-top:14px}
 
 @media(max-width:600px){
@@ -171,8 +174,14 @@ function render(list=null, forceAll=false){
   const data = list || (forceAll ? phonebook : []);
   cardList.innerHTML='';
 
+  // 검색 결과가 있으면 안내 문구를 숨기고 검색창 바로 아래부터 결과 표시
+  const query=(searchInput.value||'').trim();
+  document.body.classList.toggle('has-results', data.length>0);
+
   if(!data.length){ 
-    cardList.innerHTML='<div class="muted">검색어를 입력하면 연락처가 표시됩니다.</div>'; 
+    cardList.innerHTML = query
+      ? '<div class="muted noResult">검색 결과가 없습니다.</div>'
+      : '<div class="muted">검색어를 입력하면 연락처가 표시됩니다.</div>'; 
     return; 
   }
 
