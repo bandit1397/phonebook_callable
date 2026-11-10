@@ -5,66 +5,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>연락처 관리 (모바일)</title>
 <style>
-:root{--accent:#4456F0;--accent-2:#2f3dcf;--bg:#f4f6f9;--card:#ffffff;--muted:#666;}
-html,body{
-  height:100%;
-  margin:0;
-  font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial;
-  overflow-x:hidden;
+:root{
+  --accent:#4456F0;--accent-2:#2f3dcf;--accent-soft:#eef0fe;
+  --bg:#f2f4f8;--card:#ffffff;--text:#1d2433;--muted:#6b7280;--line:#e3e6ee;
+  --call:#16a34a;--danger:#e5484d;
 }
-body{background:var(--bg);display:flex;flex-direction:column;min-height:100vh;}
-header{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:14px 16px;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:space-between}
-header .title{display:flex;flex-direction:column}
-header .subtitle{font-size:12px;opacity:0.95}
-.container{padding:12px;flex:1;width:100%;max-width:720px;margin:0 auto;box-sizing:border-box;}
-.searchRow{display:flex;gap:8px;margin-bottom:10px;}
-.searchRow input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
-.btn{background:var(--accent);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-weight:700;cursor:pointer;height:40px;}
-.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+*{box-sizing:border-box}
+html,body{margin:0;font-family:system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',Roboto,Arial;overflow-x:hidden;color:var(--text)}
+body{background:var(--bg);min-height:100vh;-webkit-tap-highlight-color:transparent}
+
+/* 헤더 */
+header{background:linear-gradient(120deg,var(--accent),var(--accent-2));color:#fff;padding:16px 18px 34px;}
+header .top{display:flex;align-items:center;justify-content:space-between;max-width:720px;margin:0 auto}
+header .title{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-0.2px}
+header .logo{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:19px}
+header .subtitle{font-size:12px;font-weight:500;opacity:0.9;margin-top:2px}
+header .badge{font-size:12px;background:rgba(255,255,255,0.18);padding:5px 10px;border-radius:999px;white-space:nowrap}
+
+.container{padding:0 14px 24px;width:100%;max-width:720px;margin:-22px auto 0;}
+
+/* 검색 카드 */
+.searchBox{background:var(--card);border-radius:16px;padding:10px;box-shadow:0 6px 18px rgba(30,40,90,0.10);display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.searchBox .field{flex:1;position:relative}
+.searchBox .field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted)}
+.searchBox input{width:100%;padding:12px 12px 12px 38px;border-radius:12px;border:1px solid var(--line);background:#f8f9fc;font-size:16px;outline:none}
+.searchBox input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(68,86,240,0.15)}
+
+.btn{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;height:44px;white-space:nowrap}
+.btn.ghost{background:var(--accent-soft);color:var(--accent);border:1px solid transparent}
+.btn:active{transform:scale(0.98)}
+
+/* 안내 + 추가 번호 남기기 */
+.callout{background:linear-gradient(135deg,#fff8eb,#ffefd2);border:1px solid #f5d595;border-left:5px solid #ff9f1a;border-radius:14px;padding:14px 14px 12px;margin-bottom:14px;box-shadow:0 3px 10px rgba(255,159,26,0.12)}
+.c-head{display:flex;gap:8px;align-items:flex-start;font-size:15.5px;font-weight:700;color:#9a3d00;line-height:1.45}
+.c-head b{color:#e8590c}
+.c-ico{font-size:18px;line-height:1.3}
+.c-tag{font-size:12.5px;font-weight:600;color:#b8742a;margin-left:3px}
+.c-sub{font-size:13.5px;color:#6b4a14;margin:6px 0 12px 26px;line-height:1.5}
+.c-sub mark{background:linear-gradient(transparent 55%,#ffd36b 55%);color:#7a3e00;font-weight:700;padding:0 1px}
+.c-sense{color:#e8590c}
+.c-btn{width:100%;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(120deg,#ff9f1a,#f76707);color:#fff;border:none;border-radius:12px;padding:13px 16px;font:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(247,103,7,0.30);animation:pulse 2.4s ease-in-out infinite}
+.c-btn .arrow{font-size:22px;line-height:1}
+.c-btn:active{transform:scale(0.98)}
+@keyframes pulse{0%,100%{box-shadow:0 4px 12px rgba(247,103,7,0.30)}50%{box-shadow:0 4px 20px rgba(247,103,7,0.55)}}
+@media (prefers-reduced-motion:reduce){.c-btn{animation:none}}
+
+/* 관리자 영역 (기존 그대로, 숨김) */
 .form{display:flex;gap:8px;margin-bottom:10px}
-.form input{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:15px}
-.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.controls input[type=file]{display:none}
-.cardList{display:flex;flex-direction:column;gap:10px}
-.card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;gap:8px}
-.card .info{display:flex;flex-direction:column}
-.card .name{font-weight:700;font-size:16px}
-.card .phone{color:var(--muted);font-size:14px}
-.card .actions{display:flex;gap:6px;align-items:center}
-.linkCall{color:var(--accent);text-decoration:none;font-weight:600}
-.danger{background:#e74c3c;color:#fff;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
-.small{padding:8px 10px;font-size:14px;height:40px;}
-.muted{color:var(--muted);font-size:13px;text-align:center;margin-top:8px}
+.form input{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);font-size:16px}
 .row-group{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
-.row-group .btn,
-.row-group label {flex:1;min-width:120px;height:40px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:8px;font-weight:700;cursor:pointer;text-align:center;}
-.row-group label {background: transparent;color: var(--accent);border:1px solid var(--accent);}
+.row-group .btn,.row-group label{flex:1;min-width:120px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-weight:700;cursor:pointer;text-align:center;}
+.row-group label{background:var(--accent-soft);color:var(--accent);}
 .row-group label input[type=file]{display:none;}
-.row-group .small{flex:0 0 auto;}
+
+/* 연락처 카드 */
+.cardList{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);padding:14px;border-radius:14px;box-shadow:0 1px 3px rgba(20,30,60,0.06);border:1px solid #edf0f5;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card .info{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.card .name{font-weight:700;font-size:16px;word-break:break-all;line-height:1.35}
+.card .phone{display:flex;flex-wrap:wrap;gap:6px}
+.linkCall{display:inline-flex;align-items:center;gap:6px;color:var(--call);background:#ecfdf3;border:1px solid #c7efd6;text-decoration:none;font-weight:700;font-size:15px;padding:6px 11px;border-radius:999px}
+.linkCall::before{content:"📞";font-size:13px}
+.card .actions{display:flex;gap:6px;align-items:center}
+.card .actions .small{background:#f1f3f8;color:#4b5563;border:none;border-radius:10px;padding:7px 11px;font-size:13px;font-weight:600;cursor:pointer}
+.card .actions .danger{background:#fdecec;color:var(--danger)}
+
+.muted{color:var(--muted);font-size:13px;text-align:center;margin-top:8px;line-height:1.5}
+.cardList > .muted{background:#eef2ff;border:1px dashed #a5b0f7;color:#3b49c9;font-weight:600;font-size:14px;border-radius:14px;padding:18px 12px;margin:0}
+.cardList > .muted::before{content:"🔍 "}
+.notes{margin-top:14px}
+
 @media(max-width:600px){
-  .form,
-  .searchRow,
-  .row-group { flex-direction:column; gap:10px; }
-  .card{flex-direction:column;align-items:flex-start}
-  .card .actions{width:100%;justify-content:space-between}
-  .btn { width:100%; font-size:16px; }
-  input { font-size:16px; }
+  .form,.row-group{flex-direction:column;gap:10px}
+  .card .actions{flex-direction:column}
 }
 </style>
 </head>
 <body>
 <header>
-  <div class="title">
-    <div>Phonebook</div>
-    <div class="subtitle">모바일용 로컬 연락처 관리 (오프라인)</div>
+  <div class="top">
+    <div>
+      <div class="title"><span class="logo">☎</span>Phonebook</div>
+      <div class="subtitle">모바일용 로컬 연락처 관리 (오프라인)</div>
+    </div>
+    <div class="badge">🔒 안전: 로컬저장</div>
   </div>
-  <div style="font-size:13px;opacity:0.9">안전: 로컬저장</div>
 </header>
 
 <div class="container">
-  <div class="searchRow">
-    <input id="search" type="text" placeholder="검색 (이름 또는 전화번호)" />
+  <div class="searchBox">
+    <div class="field">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <input id="search" type="text" placeholder="검색 (이름 또는 전화번호)" />
+    </div>
     <button class="btn ghost small" id="btnReset">모두보기</button>
+  </div>
+
+  <!-- 안내 + 추가 전화번호 남기기 (위로 이동) -->
+  <div class="callout">
+    <div class="c-head"><span class="c-ico">💪</span><span>어떤 번호는 가끔 <b>우리의 힘</b>이 됩니다<span class="c-tag">(개인정보)</span></span></div>
+    <div class="c-sub">추가 번호는 아래 <mark>"오류&amp;추가의견 남기기"</mark>에 남기는 <b class="c-sense">센스</b> ✨</div>
+    <button type="button" class="c-btn" id="feedback-btn" onclick="window.open('https://tally.so/r/dWElLr', '_blank');">
+      <span>＋ 추가 전화번호 남기기</span><span class="arrow">›</span>
+    </button>
   </div>
 
   <div id="adminArea" style="display:none;">
@@ -72,19 +115,16 @@ header .subtitle{font-size:12px;opacity:0.95}
       <input id="name" type="text" placeholder="이름">
       <input id="phone" type="tel" placeholder="전화번호">
     </div>
-
     <div class="row-group">
       <button class="btn" id="btnAdd">추가</button>
       <button class="btn ghost" id="btnUpdate">수정</button>
     </div>
-
     <div class="row-group">
       <label for="fileInput">CSV 선택
         <input id="fileInput" type="file" accept=".csv,text/csv">
       </label>
       <button class="btn" id="btnExportCSV">CSV(out)</button>
     </div>
-
     <div class="row-group">
       <button class="btn ghost" id="btnChangePw">비밀번호 변경</button>
       <button class="btn ghost" id="btnResetPw">비밀번호 초기화</button>
@@ -92,8 +132,6 @@ header .subtitle{font-size:12px;opacity:0.95}
   </div>
 
   <div class="cardList" id="cardList"></div>
-  <div class="muted">추가 번호는 아래 "오류&추가의견 남기기"에 남기는 센스</div>
-  <div class="muted">어떤 번호는 가끔 우리의 힘이 됩니다(개인정보)</div>
 </div>
 
 <script>
@@ -364,17 +402,5 @@ loadDefaultCSV();
 
 window.onSelect=onSelect; window.onDelete=onDelete;
 </script>
-
-<!-- 여기에 주가 전화번호 남기기 버튼 삽입 -->
-<div style="text-align: center;">
-  <button 
-    id="feedback-btn"
-    style="padding:12px 20px; font-size:16px; background:#007bff; color:white; border:none; border-radius:6px; cursor:pointer;"
-    onclick="window.open('https://tally.so/r/dWElLr', '_blank');"
-  >
-    추가 전화번호 남기기
-  </button>
-</div>
-  
 </body>
 </html>
